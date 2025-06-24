@@ -1,6 +1,5 @@
 /**
   You need to create an express HTTP server in Node.js which will handle the logic of a todo list app.
-  - Don't use any database, just store all the data in an array to store the todo list data (in-memory)
   - Hard todo: Try to save responses in files, so that even if u exit the app and run it again, the data remains (similar to databases)
 
   Each todo has a title and a description. The title is a string and the description is a string.
@@ -39,66 +38,3 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require("express");
-const bodyParser = require("body-parser");
-
-const app = express();
-
-app.use(bodyParser.json());
-
-let todoList = [];
-
-app.get("/todos", (req, res) => {
-  res.status(200).json(todoList);
-});
-
-app.get("/todos/:id", (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const task = todoList.find((t) => t.id === taskId);
-  if (task) {
-    res.status(200).json(task);
-  } else {
-    res.status(404).send();
-  }
-});
-
-app.post("/todos", (req, res) => {
-  const { title, description } = req.body;
-  const newTask = {
-    id: Math.floor(Math.random() * 1000000),
-    title: title,
-    description: description,
-  };
-  todoList.push(newTask);
-  res.status(201).json(newTask);
-});
-
-app.put("/todos/:id", (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const { title, description } = req.body;
-  const taskIndex = todoList.findIndex(t => t.id === taskId);
-  if (taskIndex === -1) {
-    res.status(404).send();
-  } else {
-    todoList[taskIndex].title = title;
-    todoList[taskIndex].description = description;
-    res.status(200).json(todoList[taskIndex]);
-  }
-});
-
-app.delete("/todos/:id", (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const taskIndex = todoList.findIndex((t) => t.id === taskId);
-  if (taskIndex === -1) {
-    res.status(404).send();
-  } else {
-    todoList.splice(taskIndex, 1);
-    res.status(200).json(todoList);
-  }
-});
-
-app.use((req, res) => {
-  res.status(404).send();
-});
-
-module.exports = app;
