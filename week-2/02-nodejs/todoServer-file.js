@@ -38,3 +38,82 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+const express = require("express");
+const fs = require("fs").promises;
+const app = express();
+app.use(express.json());
+
+const FILE_PATH = "todos.json";
+
+async function readTodos() {
+  try {
+    const data = await fs.readFile(FILE_PATH, "utf8");
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+async function writeTodos(todos) {
+  await fs.writeFile(FILE_PATH, JSON.stringify(todos, null, 2));
+}
+
+app.get("/todos", async (req, res) => {
+  const todos = await readTodos();
+  res.status(200).json(todos);
+});
+
+app.get("/todos/:id", async (req, res) => {
+  const todos = await readTodos();
+  const task = todos.find((t) => t.id === parseInt(req.params.id));
+  if (task) {
+    res.status(200).json(task);
+  } else {
+    res.status(404).send();
+  }
+});
+
+app.post("/todos", async (req, res) => {
+  const { title, description } = req.body;
+  if (!title || !description) res.status(404).send;
+
+  const todos = await readTodos();
+  const newTask = {
+    id: Math.floor(Math.random() * 1000000),
+    title,
+    description,
+  };
+  todos.push(newTask);
+  await writeTodos(todos);
+  res.status(201).json({ id: newTask.id });
+});
+
+app.put("/todos/:id", async (req, res) => {
+  const { title, description } = req.body;
+  const todos = await readTodos();
+  const index = todos.findIndex((t) => t.id === parseInt(req.params.id));
+  if (index === -1) res.status(404).send();
+
+  if (title !== undefined) todos[index].title = title;
+  if (description !== undefined) todos[index].description = description;
+
+  await writeTodos(todos);
+  res.status(200).send();
+});
+
+app.delete("/todos/:id", async (req, res) => {
+  const todos = await readTodos();
+  const index = todos.findIndex((t) => t.id === parseInt(req.params.id));
+  if (index === -1) res.status(404).send();
+
+  todos.splice(index, 1);
+  await writeTodos(todos);
+  res.status(200).send();
+});
+
+app.use((req, res) => {
+  res.status(404).send();
+});
+
+module.exports = app;
