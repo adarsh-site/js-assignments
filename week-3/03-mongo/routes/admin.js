@@ -55,7 +55,7 @@ router.get("/courses", adminMiddleware, async (req, res) => {
   // Implement fetching all courses logic
   try {
     const courses = await Course.find();
-    res.status(200).json(courses);
+    res.status(200).json({courses: courses});
   } catch (err) {
     console.error("Error fetching courses", err);
     res.status(500).json({ message: "Internal server error" });
